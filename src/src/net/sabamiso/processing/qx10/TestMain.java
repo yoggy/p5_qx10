@@ -32,6 +32,17 @@ public class TestMain extends PApplet{
 		}
 	}
 
+	public void keyPressed() {
+		switch(key) {
+		case '1':
+			qx10.zoomIn1shot();
+			break;
+		case '2':
+			qx10.zoomOut1shot();
+			break;
+		}
+	}
+
 	public static void main(String[] args) {
 		PApplet.main(new String[] { "net.sabamiso.processing.qx10.TestMain" });
 	}

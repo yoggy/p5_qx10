@@ -241,32 +241,16 @@ public class QX10 extends Thread {
 	
 	
 	public PImage takePicture() {
-		boolean rv;
-		byte [] recv_buf = new byte[1024];
+		String res_body = control_post("{\"method\":\"actTakePicture\",\"params\":[],\"id\":10,\"version\":\"1.0\"}");
+		if (res_body == null) {
+			System.err.println("control_post failed...");
+			return null;
+		}
 		
-		// request take picture
-		rv = control_send("POST /sony/camera HTTP/1.1\r\nContent-Length: 63\r\n\r\n{\"method\":\"actTakePicture\",\"params\":[],\"id\":10,\"version\":\"1.0\"}");
-		if (rv == false) {
-			close();
-			return null;
-		}
-
-		// recv response
-		int recv_size = control_recv(recv_buf, 0, recv_buf.length);
-		if (recv_size <= 0) {
-			close();
-			return null;
-		}
-
 		// parse response & download picture
 		PImage image = null;
 		try {
-			String res = new String(recv_buf, 0, recv_size);
-			String body = res.split("\r\n\r\n")[1];
-			int body_length = body.length();
-			
-			// {"id":10,"result":[["http://192.168.122.1:8080/postview/pict20130614_175010_0.JPG"]]}
-			String url = body.substring(21, body_length - 4);
+			String url = res_body.substring(21, res_body.length() - 4);
 			System.out.println("url=" + url);
 			image = papplet.loadImage(url);
 		}
@@ -277,6 +261,28 @@ public class QX10 extends Thread {
 		return image;
 	}
 	
+	public boolean zoomIn1shot() {
+		String res_body = control_post("{\"method\":\"actZoom\",\"params\":[\"in\",\"1shot\"],\"id\":10,\"version\":\"1.0\"}");
+		if (res_body == null) {
+			System.err.println("control_post failed...");
+			return false;
+		}
+		
+		control_close();
+		return true;
+	}
+
+	public boolean zoomOut1shot() {
+		String res_body = control_post("{\"method\":\"actZoom\",\"params\":[\"out\",\"1shot\"],\"id\":10,\"version\":\"1.0\"}");
+		if (res_body == null) {
+			System.err.println("control_post failed...");
+			return false;
+		}
+		
+		control_close();
+		return true;
+	}
+
 	protected boolean control_connect() {
 		try {
 			control_socket = new Socket(host, control_port);
@@ -316,6 +322,31 @@ public class QX10 extends Thread {
 			}
 			control_socket = null;
 		}
+	}
+
+	public String control_post(String req_body) {
+		boolean rv;
+		int len = req_body.length();
+		byte [] recv_buf = new byte[1024];
+		
+		// request take picture
+		rv = control_send("POST /sony/camera HTTP/1.1\r\nContent-Length: " + len + "\r\n\r\n" + req_body);
+		if (rv == false) {
+			control_close();
+			return null;
+		}
+
+		// recv response
+		int recv_size = control_recv(recv_buf, 0, recv_buf.length);
+		if (recv_size <= 0) {
+			control_close();
+			return null;
+		}
+
+		String res = new String(recv_buf, 0, recv_size);
+		String res_body = res.split("\r\n\r\n")[1];
+		
+		return res_body;
 	}
 	
 	protected boolean control_send(String str) {
