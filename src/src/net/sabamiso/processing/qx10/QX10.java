@@ -173,25 +173,8 @@ public class QX10 extends Thread {
 		int w = bufferd_img.getWidth();
 		int h = bufferd_img.getHeight();
 
-		Raster raster = bufferd_img.getRaster();
-		DataBufferByte data_buffer = (DataBufferByte) (raster.getDataBuffer());
-		byte[] buf = data_buffer.getData();
 		PImage pimg = new PImage(w, h, PImage.ARGB);
-
-		for (int y = 0; y < h; ++y) {
-			for (int x = 0; x < w; ++x) {
-				int buf_idx = x * 3 + y * w * 3;
-				byte b = buf[buf_idx + 0];
-				byte g = buf[buf_idx + 1];
-				byte r = buf[buf_idx + 2];
-
-				int c = (b << 0) & 0x000000ff | (g << 8) & 0x0000ff00
-						| (r << 16) & 0x00ff0000 | (0xff << 24) & 0xff000000;
-
-				int img_idx = x + y * w;
-				pimg.pixels[img_idx] = c;
-			}
-		}
+		bufferd_img.getRGB(0, 0, pimg.width, pimg.height, pimg.pixels, 0, pimg.width);
 		pimg.updatePixels();
 
 		setLiveviewImage(pimg);
@@ -272,6 +255,28 @@ public class QX10 extends Thread {
 		return true;
 	}
 
+	public boolean zoomInStart() {
+		String res_body = control_post("{\"method\":\"actZoom\",\"params\":[\"in\",\"start\"],\"id\":10,\"version\":\"1.0\"}");
+		if (res_body == null) {
+			System.err.println("control_post failed...");
+			return false;
+		}
+		
+		control_close();
+		return true;
+	}
+
+	public boolean zoomInStop() {
+		String res_body = control_post("{\"method\":\"actZoom\",\"params\":[\"in\",\"stop\"],\"id\":10,\"version\":\"1.0\"}");
+		if (res_body == null) {
+			System.err.println("control_post failed...");
+			return false;
+		}
+		
+		control_close();
+		return true;
+	}
+
 	public boolean zoomOut1shot() {
 		String res_body = control_post("{\"method\":\"actZoom\",\"params\":[\"out\",\"1shot\"],\"id\":10,\"version\":\"1.0\"}");
 		if (res_body == null) {
@@ -283,6 +288,39 @@ public class QX10 extends Thread {
 		return true;
 	}
 
+	public boolean zoomOutStart() {
+		String res_body = control_post("{\"method\":\"actZoom\",\"params\":[\"out\",\"start\"],\"id\":10,\"version\":\"1.0\"}");
+		if (res_body == null) {
+			System.err.println("control_post failed...");
+			return false;
+		}
+		
+		control_close();
+		return true;
+	}
+
+	public boolean zoomOutStop() {
+		String res_body = control_post("{\"method\":\"actZoom\",\"params\":[\"out\",\"stop\"],\"id\":10,\"version\":\"1.0\"}");
+		if (res_body == null) {
+			System.err.println("control_post failed...");
+			return false;
+		}
+		
+		control_close();
+		return true;
+	}
+
+	public boolean setTouchAFPosition(float x, float y) {
+		String res_body = control_post("{\"method\":\"setTouchAFPosition\",\"params\":["+ x + "," + y + "],\"id\":10,\"version\":\"1.0\"}");
+		if (res_body == null) {
+			System.err.println("control_post failed...");
+			return false;
+		}
+		
+		control_close();
+		return true;
+	}
+	
 	protected boolean control_connect() {
 		try {
 			control_socket = new Socket(host, control_port);
